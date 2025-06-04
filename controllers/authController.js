@@ -5,6 +5,9 @@ const crypto = require('crypto');
 const generateToken = require('../utils/generateToken');
 const sendEmail = require('../utils/sendEmail');
 
+const { OAuth2Client } = require('google-auth-library');
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
 require('dotenv').config();
 
 // Register new user
@@ -28,6 +31,8 @@ const register = async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
+  console.log('Register request body:', req.body);
+
 };
 
 // Login
@@ -52,7 +57,7 @@ const forgotPassword = async (req, res) => {
     if (!user) return res.status(404).json({ message: 'User not found' });
 
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '15m' });
-    const resetUrl = `http://localhost:3000/reset-password/${token}`;
+    const resetUrl = `http://localhost:5000/reset-password/${token}`;
     await sendEmail(email, 'Reset Password', `Reset your password: ${resetUrl}`);
 
     res.json({ message: 'Reset link sent to email' });
@@ -88,6 +93,58 @@ const googleSuccess = (req, res) => {
   res.json({ message: 'Google Login Success' });
 };
 
+const googleMobileLogin = async (req, res) => {
+  console.log('📥 google-mobile route hit');
+  console.log('Request body:', req.body);
+
+  const { idToken } = req.body;
+  console.log('🧪 Received idToken:', idToken);
+
+  if (!idToken) return res.status(400).json({ message: 'Missing Google ID token' });
+
+  try {
+    const ticket = await client.verifyIdToken({
+      idToken,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+
+    const payload = ticket.getPayload();
+    const { email, name, picture, sub: googleId } = payload;
+
+    let user = await User.findOne({ email });
+
+    if (!user) {
+      const user_id = await getNextUserId(); // Ensure this helper exists
+      user = new User({
+        user_id,
+        username: name,
+        email,
+        googleId,
+        profilePic: picture,
+        authProvider: 'google',
+        role: 'user'
+      });
+      await user.save();
+      console.log('🆕 New user created:', email);
+    } else {
+      if (!user.googleId) user.googleId = googleId;
+      if (!user.profilePic && picture) user.profilePic = picture;
+      if (!user.authProvider) user.authProvider = 'google';
+      await user.save();
+      console.log('✅ Existing user updated:', email);
+    }
+
+    const token = generateToken(user);
+    console.log('✅ Token generated and sent');
+    return res.status(200).json({ token });
+
+  } catch (err) {
+    console.error('❌ Google Mobile Login Error:', err.message);
+    return res.status(401).json({ message: 'Invalid Google token' });
+  }
+};
+
+
 module.exports = {
   register,
   login,
@@ -95,4 +152,5 @@ module.exports = {
   resetPassword,
   googleCallback,
   googleSuccess,
+  googleMobileLogin
 };

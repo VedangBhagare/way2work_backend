@@ -18,7 +18,7 @@ mongoose.set('debug', true);
 // Function to connect to MongoDB
 const connectDB = async () => {
     try {
-        console.log("Mongo URI:", MONGODB_URI);
+        // console.log("Mongo URI:", MONGODB_URI);
 
         // Check if already connected
         if (mongoose.connection.readyState === 1) {
