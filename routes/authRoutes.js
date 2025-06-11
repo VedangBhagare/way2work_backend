@@ -1,6 +1,10 @@
 // routes/userRoutes.js
 const express = require('express');
 
+const { isAuthenticated } = require('../middleWare/authMiddleware');
+
+
+
 const {
   register,
   login,
@@ -30,5 +34,14 @@ router.get('/google/callback', passport.authenticate('google', {
 
 // Redirect success
 router.get('/google-success', googleSuccess);
+
+router.get('/user', isAuthenticated, (req, res) => {
+  res.json({
+    user_id: req.user.user_id,
+    username: req.user.username,
+    email: req.user.email,
+    role: req.user.role
+  });
+});
 
 module.exports = router;
