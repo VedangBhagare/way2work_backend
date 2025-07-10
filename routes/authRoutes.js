@@ -44,4 +44,26 @@ router.get('/user', isAuthenticated, (req, res) => {
   });
 });
 
+router.put('/user/update', isAuthenticated, async (req, res) => {
+  try {
+    const { username, email, password } = req.body;
+    const user = await User.findOne({ user_id: req.user.user_id });
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    user.username = username || user.username;
+    user.email = email || user.email;
+
+    if (password) {
+      const hashed = await bcrypt.hash(password, 10);
+      user.password = hashed;
+    }
+
+    await user.save();
+    res.json({ username: user.username, email: user.email });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
 module.exports = router;
