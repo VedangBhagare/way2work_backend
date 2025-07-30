@@ -3,7 +3,8 @@ const express = require('express');
 
 const { isAuthenticated } = require('../middleWare/authMiddleware');
 
-
+const User = require('../models/User');
+const bcrypt = require('bcryptjs');
 
 const {
   register,
@@ -35,6 +36,7 @@ router.get('/google/callback', passport.authenticate('google', {
 // Redirect success
 router.get('/google-success', googleSuccess);
 
+//Fetch User Info
 router.get('/user', isAuthenticated, (req, res) => {
   res.json({
     user_id: req.user.user_id,
@@ -44,6 +46,7 @@ router.get('/user', isAuthenticated, (req, res) => {
   });
 });
 
+// Update User Info
 router.put('/user/update', isAuthenticated, async (req, res) => {
   try {
     const { username, email, password } = req.body;
