@@ -31,7 +31,9 @@ app.use(cors({
     'http://localhost:5000',
     'http://192.168.56.1:5000',
     'http://192.168.52.207:8081', // ✅ Frontend dev server
-    'http://192.168.52.207:5000'  // ✅ Allow self
+    'http://192.168.52.207:5000',
+    'http://10.0.0.5:5000',
+    'http://10.192.76.65:5000' // ✅ Allow self
   ],
   credentials: true,
 }));
@@ -53,7 +55,7 @@ app.use(passport.session());
 // Routes
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/jobs', require('./routes/jobProfileRoutes'));  // 👈 Add Job Routes
-
+app.use('/api/jobs/external', require('./routes/externaljobs'));
 // Default route (optional)
 app.get('/', (req, res) => {
   res.send('🚀 Way 2 Work API is running');
