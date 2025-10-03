@@ -52,5 +52,20 @@ backend/
 ```bash
 git clone [https://github.com/VedangBhagare/way2work_backend.git]
 cd way2work-backend
+```
+### 2. Install dependencies
+
+npm install
+
+### 3. Configure environment
+
+### 4. Run development server
+
+npm run dev
+
+### 5. Run Production
+
+npm start
+
 
 
