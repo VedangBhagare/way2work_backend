@@ -59,6 +59,8 @@ npm install
 
 ### 3. Configure environment
 
+From .env file
+
 ### 4. Run development server
 
 npm run dev
